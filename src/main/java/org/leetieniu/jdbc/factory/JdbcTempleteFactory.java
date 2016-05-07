@@ -9,6 +9,7 @@ import org.leetieniu.jdbc.templete.DefaultJdbcTemplete;
 import org.leetieniu.jdbc.templete.JdbcTemplete;
 
 /**
+ * @see https://github.com/leetieniu2015/leetieniu-jdbc/tree/master
  * @package org.leetieniu.jdbc.factory  
  * @author leetieniu
  * @description JdbcTemplete工厂类
@@ -25,6 +26,7 @@ public class JdbcTempleteFactory {
 	private static final int DEFUALT_TIMEOUT = 10;
 	
 	/**
+	 * @see https://github.com/leetieniu2015/leetieniu-jdbc/tree/master
 	 * @description 获取默认JdbcTemplete
 	 * @date 2016年5月7日 下午10:03:53  
 	 * @param driverClassName 驱动名称
@@ -40,6 +42,7 @@ public class JdbcTempleteFactory {
 	}
 	
 	/**
+	 * @see https://github.com/leetieniu2015/leetieniu-jdbc/tree/master
 	 * @description 获取默认JdbcTemplete
 	 * @date 2016年5月7日 下午10:08:33  
 	 * @param initialSize 连接池个数
