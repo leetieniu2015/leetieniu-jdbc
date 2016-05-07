@@ -3,11 +3,11 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<groupId>org.leetieniu</groupId>
-	<artifactId>jdbc</artifactId>
+	<artifactId>leetieniu-jdbc</artifactId>
 	<version>0.0.1</version>
 	<packaging>jar</packaging>
 
-	<name>jdbc</name>
+	<name>leetieniu-jdbc</name>
 	<url>http://maven.apache.org</url>
 
 	<properties>
