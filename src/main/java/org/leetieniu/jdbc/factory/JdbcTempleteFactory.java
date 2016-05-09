@@ -58,19 +58,17 @@ public class JdbcTempleteFactory {
 			String userName, String password, int timeout) {
 		final DataBaseConfig config = new DataBaseConfig(driverClassName, url, userName, password);
 		
-		DefaultJdbcTemplete defaultJdbcTemplete = null;
-		
 		if(!JDBCTEMPLETES.containsKey(config)) {
 			synchronized (JDBCTEMPLETES) {
 				if(!JDBCTEMPLETES.containsKey(config)) {
 					final SimpleDataSource dateSource = new SimpleDataSource(
 							initialSize, driverClassName, url, userName, password, timeout);
-					defaultJdbcTemplete = new DefaultJdbcTemplete(dateSource);
+					final DefaultJdbcTemplete defaultJdbcTemplete = new DefaultJdbcTemplete(dateSource);
 					JDBCTEMPLETES.put(config, defaultJdbcTemplete);
 				}
 			}
 		}
-		return defaultJdbcTemplete;
+		return (DefaultJdbcTemplete)JDBCTEMPLETES.get(config);
 	}
 	
 }
