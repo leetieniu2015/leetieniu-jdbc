@@ -8,6 +8,7 @@ import org.leetieniu.jdbc.datasouce.SimpleDataSource;
 import org.leetieniu.jdbc.templete.DefaultJdbcTemplete;
 import org.leetieniu.jdbc.templete.JdbcTemplete;
 
+
 /**
  * @see https://github.com/leetieniu2015/leetieniu-jdbc/tree/master
  * @package org.leetieniu.jdbc.factory  
@@ -63,7 +64,7 @@ public class JdbcTempleteFactory {
 			synchronized (JDBCTEMPLETES) {
 				if(!JDBCTEMPLETES.containsKey(config)) {
 					final SimpleDataSource dateSource = new SimpleDataSource(
-							timeout, driverClassName, url, userName, password, timeout);
+							initialSize, driverClassName, url, userName, password, timeout);
 					defaultJdbcTemplete = new DefaultJdbcTemplete(dateSource);
 					JDBCTEMPLETES.put(config, defaultJdbcTemplete);
 				}
