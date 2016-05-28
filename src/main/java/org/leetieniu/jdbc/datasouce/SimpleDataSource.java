@@ -107,6 +107,11 @@ public class SimpleDataSource implements DataSource {
 		return null;
 	}
 	
+	/**
+	 * @description 释放连接 到连接池 
+	 * @date 2016年5月28日 下午11:27:14  
+	 * @param connection 连接
+	 */
 	public void releaseConnection(Connection connection) {
 		pool.releaseConnection(connection);
 	}
