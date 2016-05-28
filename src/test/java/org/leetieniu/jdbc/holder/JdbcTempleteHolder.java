@@ -1,5 +1,7 @@
 package org.leetieniu.jdbc.holder;
 
+import org.leetieniu.jdbc.datasouce.SimpleDataSource;
+import org.leetieniu.jdbc.factory.DataSourceFactory;
 import org.leetieniu.jdbc.factory.JdbcTempleteFactory;
 import org.leetieniu.jdbc.templete.DefaultJdbcTemplete;
 
@@ -19,7 +21,10 @@ public class JdbcTempleteHolder {
 		final String url = "jdbc:mysql://115.28.219.63/qdm160915374_db?characterEncoding=utf-8&useSSL=false";
 		final String userName = "qdm160915374";
 		final String password = "19910325";
-		return JdbcTempleteFactory.getDefaultJdbcTemplete(1,
-				driverClassName, url, userName, password, 10);
+		
+		final SimpleDataSource simpleDataSource = DataSourceFactory.
+				getSimpleDataSource(driverClassName, url, userName, password);
+		
+		return JdbcTempleteFactory.getDefaultJdbcTemplete(simpleDataSource);
 	}
 }

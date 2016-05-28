@@ -24,9 +24,9 @@ public class DefaultDataBaseConnectionPool implements DataBaseConnectionPool {
 	private final LinkedList<Connection> stashPool = new LinkedList<Connection>();
 	
 	/** 连接池最大限制数 */
-	private static final int MAX_POOL_SIZE = 20;
+	private static final int MAX_POOL_SIZE = 100;
 	/** 连接池默认的数量 */
-	private static final int DEFAULT_POOL_SIZE = 5;
+	private static final int DEFAULT_POOL_SIZE = 20;
 	/** 连接池最小的数量*/
 	private static final int MIN_POOL_SIZE = 1;
 	
@@ -65,18 +65,29 @@ public class DefaultDataBaseConnectionPool implements DataBaseConnectionPool {
 		
 		for(int i = 0; i < initialSize; i ++) {
 			try {
-				workingPool.addLast(DriverManager.getConnection(url, userName, password));
+				stashPool.addLast(DriverManager.getConnection(url, userName, password));
 			} catch (SQLException ex) {
+				shutdown();
 				throw new JdbcTempleteException(ex);
 			}
 		}
-		stashPool.addAll(workingPool);
+		workingPool.addAll(stashPool);
 	}
 	
 	@Override
 	public void releaseConnection(Connection connection) {
 		if(connection != null) {
 			synchronized (workingPool) {
+				
+				// 释放事务
+				try {
+					if (!connection.getAutoCommit()) {
+						connection.setAutoCommit(true);
+				    }
+				} catch (SQLException ex) {
+					throw new JdbcTempleteException(ex);
+				}
+				
 				// 连接释放后需要进行统治, 这样其他消费者能够感知到连接池中已经归还了一个链接
 				workingPool.addLast(connection);
 				workingPool.notifyAll();

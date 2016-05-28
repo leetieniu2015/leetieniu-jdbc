@@ -1,5 +1,6 @@
 package org.leetieniu.jdbc.templete;
 
+import java.sql.Connection;
 import java.util.List;
 
 /**
@@ -12,6 +13,17 @@ import java.util.List;
 public interface JdbcTemplete {
 	
 	/**
+	 * @description 获取指定对象 连接自己管理
+	 * @date 2016年5月16日 上午10:26:53  
+	 * @param conn
+	 * @param sql
+	 * @param param 参数
+	 * @param clazz 返回对象class
+	 * @return
+	 */
+	public <T> T queryForObject(Connection conn, String sql, Object[] param, Class<T> clazz);
+	
+	/**
 	 * @description 获取指定对象
 	 * @date 2016年5月4日 下午5:52:56  
 	 * @param sql
@@ -22,14 +34,35 @@ public interface JdbcTemplete {
 	public <T> T queryForObject(String sql, Object[] param, Class<T> clazz);
 	
 	/**
+	 * @description 查询制定对象列表 连接自己管理
+	 * @date 2016年5月16日 上午8:52:08  
+	 * @param conn
+	 * @param sql
+	 * @param param  参数
+	 * @param clazz 返回对象class
+	 * @return List<T>
+	 */
+	public <T> List<T> queryForList(Connection conn, String sql, Object[] param , Class<T> clazz) ;
+	
+	/**
 	 * @description 查询制定对象列表
 	 * @date 2016年5月4日 下午8:50:16  
 	 * @param sql
 	 * @param param 参数
 	 * @param clazz 返回对象class
-	 * @return T
+	 * @return List<T>
 	 */
 	public <T> List<T> queryForList(String sql, Object[] param , Class<T> clazz) ;
+	
+	/**
+	 * @description 插入, 连接自己管理
+	 * @date 2016年5月16日 上午8:51:28  
+	 * @param conn 连接
+	 * @param sql
+	 * @param param 参数
+	 * @return 大于0成功否则失败
+	 */
+	public int insert(Connection conn, String sql, Object[] param);
 	
 	/**
 	 * @description 插入
@@ -41,6 +74,16 @@ public interface JdbcTemplete {
 	public int insert(String sql, Object[] param);
 	
 	/**
+	 * @description 更新, 连接自己管理
+	 * @date 2016年5月16日 上午8:50:28  
+	 * @param conn 连接
+	 * @param sql
+	 * @param param 参数
+	 * @return 大于0成功否则失败
+	 */
+	public int update(Connection conn, String sql, Object[] param);
+	
+	/**
 	 * @description 更新
 	 * @date 2016年5月7日 下午10:17:40  
 	 * @param sql
@@ -48,6 +91,16 @@ public interface JdbcTemplete {
 	 * @return 大于0成功否则失败
 	 */
 	public int update(String sql, Object[] param);
+	
+	/**
+	 * @description 删除, 连接自己管理
+	 * @date 2016年5月16日 上午8:49:09  
+	 * @param conn 连接
+	 * @param sql
+	 * @param param 参数
+	 * @return 大于0成功否则失败
+	 */
+	public int delete(Connection conn, String sql, Object[] param);
 	
 	/**
 	 * @description 删除

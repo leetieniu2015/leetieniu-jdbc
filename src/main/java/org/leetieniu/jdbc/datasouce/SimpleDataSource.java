@@ -8,6 +8,7 @@ import java.util.logging.Logger;
 
 import javax.sql.DataSource;
 
+import org.leetieniu.jdbc.exception.JdbcTempleteException;
 import org.leetieniu.jdbc.pool.DataBaseConnectionPool;
 import org.leetieniu.jdbc.pool.DefaultDataBaseConnectionPool;
 
@@ -75,7 +76,6 @@ public class SimpleDataSource implements DataSource {
 		return timeout;
 	}
 
-	@Override
 	public Logger getParentLogger() throws SQLFeatureNotSupportedException {
 		throw new SQLFeatureNotSupportedException("SimepleDataSource is no parent logger");
 	}
@@ -96,7 +96,7 @@ public class SimpleDataSource implements DataSource {
 		try {
 			conn = pool.fecthConnection(timeout);
 		} catch (InterruptedException e) {
-			e.printStackTrace();
+			throw new JdbcTempleteException(e);
 		}
 		return conn;
 	}
@@ -106,7 +106,11 @@ public class SimpleDataSource implements DataSource {
 			throws SQLException {
 		return null;
 	}
-
+	
+	public void releaseConnection(Connection connection) {
+		pool.releaseConnection(connection);
+	}
+	
 	public String getPassword() {
 		return password;
 	}
@@ -139,19 +143,57 @@ public class SimpleDataSource implements DataSource {
 		this.url = url;
 	}
 
-	public DataBaseConnectionPool getPool() {
-		return pool;
-	}
-
-	public void setPool(DataBaseConnectionPool pool) {
-		this.pool = pool;
-	}
-
 	public int getInitialSize() {
 		return initialSize;
 	}
 
 	public void setInitialSize(int initialSize) {
 		this.initialSize = initialSize;
+	}
+
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result
+				+ ((driverClassName == null) ? 0 : driverClassName.hashCode());
+		result = prime * result
+				+ ((password == null) ? 0 : password.hashCode());
+		result = prime * result + ((url == null) ? 0 : url.hashCode());
+		result = prime * result
+				+ ((userName == null) ? 0 : userName.hashCode());
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		SimpleDataSource other = (SimpleDataSource) obj;
+		if (driverClassName == null) {
+			if (other.driverClassName != null)
+				return false;
+		} else if (!driverClassName.equals(other.driverClassName))
+			return false;
+		if (password == null) {
+			if (other.password != null)
+				return false;
+		} else if (!password.equals(other.password))
+			return false;
+		if (url == null) {
+			if (other.url != null)
+				return false;
+		} else if (!url.equals(other.url))
+			return false;
+		if (userName == null) {
+			if (other.userName != null)
+				return false;
+		} else if (!userName.equals(other.userName))
+			return false;
+		return true;
 	}
 }

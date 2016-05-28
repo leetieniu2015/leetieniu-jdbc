@@ -21,6 +21,8 @@ import org.leetieniu.jdbc.exception.JdbcTempleteException;
  */
 public class DefaultJdbcTemplete implements JdbcTemplete {
 	
+	public DefaultJdbcTemplete() {}
+	
 	/**
 	 * @param dataSource 数据源
 	 */
@@ -38,65 +40,24 @@ public class DefaultJdbcTemplete implements JdbcTemplete {
 	public void setDataSource(SimpleDataSource dataSource) {
 		this.dataSource = dataSource;
 	}
-
-	@Override
-	public <T> T queryForObject(String sql, Object[] param , final Class<T> clazz) {
-		T t = excute(sql, param ,  new PreparedStatementJdbcHandler<T> () {
-			@Override
-			public T handle(PreparedStatement pstmt) throws SQLException,
-					InstantiationException, IllegalAccessException {
-				T t = query(pstmt, clazz, new ResultSetHandler<T, T> () {
-					@Override
-					public T handle(ResultSet resultSet, Class<T> clazz)
-							throws SQLException, InstantiationException,
-							IllegalAccessException {
-						return getObject(resultSet, clazz);
-					}
-				});
-				return t;
-			}
-		});
-		return t;
-	}
-	
-	@Override
-	public <T> List<T> queryForList(String sql, Object[] param , final Class<T> clazz) {
-		List<T> list = excute(sql, param , new PreparedStatementJdbcHandler<List<T>> () {
-
-			@Override
-			public List<T> handle(PreparedStatement pstmt) throws SQLException,
-					InstantiationException, IllegalAccessException {
-				List<T> list = query(pstmt, clazz, new ResultSetHandler<List<T>, T> () {
-					@Override
-					public List<T> handle(ResultSet resultSet, Class<T> clazz)
-							throws SQLException, InstantiationException,
-							IllegalAccessException {
-						return getObjectList(resultSet, clazz);
-					}
-				});
-				return list;
-			}
-		});
-		return list;
-	}
 	
 	/**
 	 * @description 查询模板
 	 * @date 2016年5月5日 上午10:30:55  
 	 * @param pstmt
 	 * @param clazz
-	 * @param hander
+	 * @param handler
 	 * @return
 	 * @throws SQLException
 	 * @throws InstantiationException
 	 * @throws IllegalAccessException
 	 */
-	private <T,D> D query(PreparedStatement pstmt, Class<T> clazz, ResultSetHandler<D, T> hander) throws SQLException, InstantiationException, IllegalAccessException {
+	private <T,D> D query(PreparedStatement pstmt, Class<T> clazz, ResultSetHandler<D, T> handler) throws SQLException, InstantiationException, IllegalAccessException {
 		ResultSet resultSet = null;
 		D d = null;
 		try {
 			resultSet = pstmt.executeQuery();
-			d = hander.handle(resultSet, clazz);
+			d = handler.handle(resultSet, clazz);
 		} catch (SQLException ex) {
 			throw ex;
 		} catch (InstantiationException ex) {
@@ -110,7 +71,7 @@ public class DefaultJdbcTemplete implements JdbcTemplete {
 					resultSet = null;
 				}
 			} catch (SQLException ex) {
-				throw new JdbcTempleteException(ex);
+				throw ex;
 			}
 		}
 		return d;
@@ -158,9 +119,53 @@ public class DefaultJdbcTemplete implements JdbcTemplete {
 					pstmt = null;
 				}
 			} catch (SQLException ex) {
-				throw new JdbcTempleteException(ex);
+				//throw new JdbcTempleteException(ex);
 			}
-			dataSource.getPool().releaseConnection(conn);
+			dataSource.releaseConnection(conn);
+		}
+		return d;
+	}
+	
+	/**
+	 * @description 执行方法  连接自己管理
+	 * @date 2016年5月16日 上午8:42:11  
+	 * @param conn
+	 * @param sql
+	 * @param param
+	 * @param handler
+	 * @return
+	 */
+	private <T,D> D excute(Connection conn ,String sql, Object[] param , PreparedStatementJdbcHandler<D> handler) {
+		
+		PreparedStatement pstmt = null;
+		D d = null;
+		try {
+			pstmt = conn.prepareStatement(sql);
+			if(null != param) {
+				for (int i = 0; i < param.length; i++) {
+					pstmt.setObject(i + 1, param[i]);
+			    }
+			}
+			
+			d = handler.handle(pstmt);
+			
+		} catch (SQLException ex) {
+			throw new JdbcTempleteException(ex);
+		} catch (InstantiationException ex) {
+			throw new JdbcTempleteException(ex);
+		} catch (IllegalAccessException ex) {
+			throw new JdbcTempleteException(ex);
+		} catch (Exception ex) {
+			throw new JdbcTempleteException(ex);
+		} finally {
+			try {
+				if (pstmt != null) {
+					pstmt.close();
+					pstmt = null;
+				}
+			} catch (SQLException ex) {
+				//throw new JdbcTempleteException(ex);
+			}
 		}
 		return d;
 	}
@@ -203,7 +208,7 @@ public class DefaultJdbcTemplete implements JdbcTemplete {
 		final List<T> result = new ArrayList<T>();
 		
 		final ResultSetMetaData resultSetMetaData = resultSet.getMetaData();
-		int columnCount = resultSetMetaData.getColumnCount();
+		final int columnCount = resultSetMetaData.getColumnCount();
 		/*Map<String, Integer> map = new HashMap<String, Integer>();
 		
 		for(int i = 1; i <= columnCount; i ++ ) {
@@ -211,11 +216,12 @@ public class DefaultJdbcTemplete implements JdbcTemplete {
 					resultSetMetaData.getColumnType(i));
 		}*/
 		
-		Field[] fields = clazz.getDeclaredFields();
+		final Field[] fields = clazz.getDeclaredFields();
 		
+		// 算法待优化
 		if (resultSet != null) {
 			while (resultSet.next()) {
-				T t = clazz.newInstance();
+				final T t = clazz.newInstance();
 				for(Field field : fields) {
 					field.setAccessible(true);
 					for(int j = 1; j <= columnCount; j ++ ) {
@@ -351,18 +357,132 @@ public class DefaultJdbcTemplete implements JdbcTemplete {
 		});
 	}
 	
+	/**
+	 * @description 执行更新
+	 * @date 2016年5月7日 下午10:16:55  
+	 * @param sql
+	 * @param param 参数
+	 * @return 大于0成功否则失败
+	 */
+	private int exceuteUpdate(Connection conn, String sql, Object[] param) {
+		return excute(conn, sql, param , new PreparedStatementJdbcHandler<Integer> () {
+			@Override
+			public Integer handle(PreparedStatement pstmt) throws SQLException,
+					InstantiationException, IllegalAccessException {
+				return pstmt.executeUpdate();
+			}
+		});
+	}
+	
+	@Override
+	public int insert(Connection conn, String sql, Object[] param) {
+		return exceuteUpdate(conn, sql, param);
+	}
+	
 	@Override
 	public int insert(String sql, Object[] param) {
 		return exceuteUpdate(sql, param);
 	}
-
+	
+	@Override
+	public int update(Connection conn, String sql, Object[] param) {
+		return exceuteUpdate(conn, sql, param);
+	}
+	
 	@Override
 	public int update(String sql, Object[] param) {
 		return exceuteUpdate(sql, param);
 	}
-
+	
+	@Override
+	public int delete(Connection conn, String sql, Object[] param) {
+		return exceuteUpdate(conn, sql, param);
+	}
+	
 	@Override
 	public int delete(String sql, Object[] param) {
 		return exceuteUpdate(sql, param);
+	}
+	
+	@Override
+	public <T> T queryForObject(Connection conn, String sql, Object[] param , final Class<T> clazz) {
+		T t = excute(conn, sql, param ,  new PreparedStatementJdbcHandler<T> () {
+			@Override
+			public T handle(PreparedStatement pstmt) throws SQLException,
+					InstantiationException, IllegalAccessException {
+				T t = query(pstmt, clazz, new ResultSetHandler<T, T> () {
+					@Override
+					public T handle(ResultSet resultSet, Class<T> clazz)
+							throws SQLException, InstantiationException,
+							IllegalAccessException {
+						return getObject(resultSet, clazz);
+					}
+				});
+				return t;
+			}
+		});
+		return t;
+	}
+	
+	@Override
+	public <T> T queryForObject(String sql, Object[] param , final Class<T> clazz) {
+		T t = excute(sql, param ,  new PreparedStatementJdbcHandler<T> () {
+			@Override
+			public T handle(PreparedStatement pstmt) throws SQLException,
+					InstantiationException, IllegalAccessException {
+				T t = query(pstmt, clazz, new ResultSetHandler<T, T> () {
+					@Override
+					public T handle(ResultSet resultSet, Class<T> clazz)
+							throws SQLException, InstantiationException,
+							IllegalAccessException {
+						return getObject(resultSet, clazz);
+					}
+				});
+				return t;
+			}
+		});
+		return t;
+	}
+	
+	@Override
+	public <T> List<T> queryForList(Connection conn, String sql, Object[] param , final Class<T> clazz) {
+		List<T> list = excute(conn, sql, param , new PreparedStatementJdbcHandler<List<T>> () {
+
+			@Override
+			public List<T> handle(PreparedStatement pstmt) throws SQLException,
+					InstantiationException, IllegalAccessException {
+				List<T> list = query(pstmt, clazz, new ResultSetHandler<List<T>, T> () {
+					@Override
+					public List<T> handle(ResultSet resultSet, Class<T> clazz)
+							throws SQLException, InstantiationException,
+							IllegalAccessException {
+						return getObjectList(resultSet, clazz);
+					}
+				});
+				return list;
+			}
+		});
+		return list;
+	}
+	
+	@Override
+	public <T> List<T> queryForList(String sql, Object[] param , final Class<T> clazz) {
+		List<T> list = excute(sql, param , new PreparedStatementJdbcHandler<List<T>> () {
+
+			@Override
+			public List<T> handle(PreparedStatement pstmt) throws SQLException,
+					InstantiationException, IllegalAccessException {
+				List<T> list = query(pstmt, clazz, new ResultSetHandler<List<T>, T> () {
+					@Override
+					public List<T> handle(ResultSet resultSet, Class<T> clazz)
+							throws SQLException, InstantiationException,
+							IllegalAccessException {
+						return getObjectList(resultSet, clazz);
+					}
+				});
+				return list;
+			}
+		});
+		return list;
 	}
 }

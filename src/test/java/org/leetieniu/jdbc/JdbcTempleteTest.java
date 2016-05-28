@@ -19,12 +19,13 @@ import org.leetieniu.jdbc.templete.JdbcTemplete;
 public class JdbcTempleteTest {
 	
 	private JdbcTemplete JdbcTemplete = JdbcTempleteHolder.getDefaultJdbcTemplete();
+	//private JdbcTemplete JdbcTemplete2 = JdbcTempleteHolder.getDefaultJdbcTemplete();
 	
 	@Test
 	@Ignore
 	public void testQuery() {
 		final String sql = "select * from user where id = ?";
-		final Object[] param = {1};
+		final Object[] param = {3};
 		final User user = JdbcTemplete.queryForObject(sql, param, User.class);
 		System.out.println(user);
 	}
