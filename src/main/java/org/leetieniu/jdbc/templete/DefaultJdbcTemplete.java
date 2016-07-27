@@ -6,18 +6,17 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import org.leetieniu.jdbc.datasouce.SimpleDataSource;
 import org.leetieniu.jdbc.exception.JdbcTempleteException;
 
 /**
- * @package org.leetieniu.jdbc.templete  
+ * 默认JdbcTemplete实现
  * @author leetieniu
- * @description 默认JdbcTemplete实现
- * @date 2016年5月6日 下午7:15:39    
- * @version V1.0
  */
 public class DefaultJdbcTemplete implements JdbcTemplete {
 	
@@ -32,22 +31,17 @@ public class DefaultJdbcTemplete implements JdbcTemplete {
 	
 	/** 数据源 */
 	private SimpleDataSource dataSource;
-	
-	public SimpleDataSource getDataSource() {
-		return dataSource;
-	}
 
 	public void setDataSource(SimpleDataSource dataSource) {
 		this.dataSource = dataSource;
 	}
 	
 	/**
-	 * @description 查询模板
-	 * @date 2016年5月5日 上午10:30:55  
+	 * 查询模板
 	 * @param pstmt
 	 * @param clazz
 	 * @param handler
-	 * @return
+	 * @return D
 	 * @throws SQLException
 	 * @throws InstantiationException
 	 * @throws IllegalAccessException
@@ -64,11 +58,10 @@ public class DefaultJdbcTemplete implements JdbcTemplete {
 			throw ex;
 		} catch (IllegalAccessException ex) {
 			throw ex;
-		}finally {
+		} finally {
 			try {
 				if (resultSet != null) {
 					resultSet.close();
-					resultSet = null;
 				}
 			} catch (SQLException ex) {
 				throw ex;
@@ -78,65 +71,14 @@ public class DefaultJdbcTemplete implements JdbcTemplete {
 	}
 	
 	/**
-	 * @description 执行模板
-	 * @date 2016年5月5日 上午10:06:07  
-	 * @param sql 
-	 * @param param 参数
-	 * @param clazz 类型
-	 * @param handler 行为
-	 * @return D
-	 */
-	private <T,D> D excute(String sql, Object[] param , PreparedStatementJdbcHandler<D> handler) {
-		
-		Connection conn = null;
-		PreparedStatement pstmt = null;
-		D d = null;
-		try {
-			conn = dataSource.getConnection();
-			pstmt = conn.prepareStatement(sql);
-			if(null != param) {
-				for (int i = 0; i < param.length; i++) {
-					pstmt.setObject(i + 1, param[i]);
-			    }
-			}
-			
-			d = handler.handle(pstmt);
-			/*resultSet = pstmt.executeQuery();
-			d = handler.handle(resultSet, clazz);*/
-			
-		} catch (SQLException ex) {
-			throw new JdbcTempleteException(ex);
-		} catch (InstantiationException ex) {
-			throw new JdbcTempleteException(ex);
-		} catch (IllegalAccessException ex) {
-			throw new JdbcTempleteException(ex);
-		} catch (Exception ex) {
-			throw new JdbcTempleteException(ex);
-		} finally {
-			try {
-				if (pstmt != null) {
-					pstmt.close();
-					pstmt = null;
-				}
-			} catch (SQLException ex) {
-				//throw new JdbcTempleteException(ex);
-			}
-			dataSource.releaseConnection(conn);
-		}
-		return d;
-	}
-	
-	/**
-	 * @description 执行方法  连接自己管理
-	 * @date 2016年5月16日 上午8:42:11  
+	 * 执行方法  连接自己管理
 	 * @param conn
 	 * @param sql
 	 * @param param
 	 * @param handler
-	 * @return
+	 * @return D
 	 */
 	private <T,D> D excute(Connection conn ,String sql, Object[] param , PreparedStatementJdbcHandler<D> handler) {
-		
 		PreparedStatement pstmt = null;
 		D d = null;
 		try {
@@ -146,9 +88,7 @@ public class DefaultJdbcTemplete implements JdbcTemplete {
 					pstmt.setObject(i + 1, param[i]);
 			    }
 			}
-			
 			d = handler.handle(pstmt);
-			
 		} catch (SQLException ex) {
 			throw new JdbcTempleteException(ex);
 		} catch (InstantiationException ex) {
@@ -161,7 +101,6 @@ public class DefaultJdbcTemplete implements JdbcTemplete {
 			try {
 				if (pstmt != null) {
 					pstmt.close();
-					pstmt = null;
 				}
 			} catch (SQLException ex) {
 				//throw new JdbcTempleteException(ex);
@@ -173,8 +112,7 @@ public class DefaultJdbcTemplete implements JdbcTemplete {
 	private final static int FIRST = 0;
 	
 	/**
-	 * @description 获取结果集对象
-	 * @date 2016年5月4日 下午8:18:51  
+	 * 获取结果集对象
 	 * @param resultSet
 	 * @param clazz
 	 * @return T
@@ -183,9 +121,11 @@ public class DefaultJdbcTemplete implements JdbcTemplete {
 	 * @throws IllegalAccessException
 	 */
 	private <T> T getObject(ResultSet resultSet, Class<T> clazz) throws SQLException, InstantiationException, IllegalAccessException  {
+		resultSet.last();
 		if(resultSet.getRow() > 1) {
 			throw new JdbcTempleteException("结果集大于1个");
 		}
+		resultSet.beforeFirst();
 		List<T> list = getObjectList(resultSet, clazz);
 		if(list.size() < 1) {
 			return null;
@@ -194,8 +134,7 @@ public class DefaultJdbcTemplete implements JdbcTemplete {
 	}
 	
 	/**
-	 * @description 获取结果集的对象列表
-	 * @date 2016年5月4日 下午8:18:27  
+	 * 获取结果集的对象列表
 	 * @param resultSet
 	 * @param clazz
 	 * @return List<T>
@@ -205,23 +144,21 @@ public class DefaultJdbcTemplete implements JdbcTemplete {
 	 */
 	private <T> List<T> getObjectList(ResultSet resultSet, Class<T> clazz) 
 			throws SQLException, InstantiationException, IllegalAccessException {
-		final List<T> result = new ArrayList<T>();
+		resultSet.last();
+		int row = resultSet.getRow() + 1;
+		resultSet.beforeFirst();
+		
+		List<T> result = null;
 		
 		final ResultSetMetaData resultSetMetaData = resultSet.getMetaData();
-		final int columnCount = resultSetMetaData.getColumnCount();
-		/*Map<String, Integer> map = new HashMap<String, Integer>();
+		int columnCount = resultSetMetaData.getColumnCount();
 		
-		for(int i = 1; i <= columnCount; i ++ ) {
-			map.put(resultSetMetaData.getColumnName(i), 
-					resultSetMetaData.getColumnType(i));
-		}*/
+		Field[] fields = clazz.getDeclaredFields();
 		
-		final Field[] fields = clazz.getDeclaredFields();
-		
-		// 算法待优化
+		//TODO 算法待优化
 		if (resultSet != null) {
 			while (resultSet.next()) {
-				final T t = clazz.newInstance();
+				T t = clazz.newInstance();
 				for(Field field : fields) {
 					field.setAccessible(true);
 					for(int j = 1; j <= columnCount; j ++ ) {
@@ -234,26 +171,29 @@ public class DefaultJdbcTemplete implements JdbcTemplete {
 						}
 					}
 				}
+				
+				if(result == null) {
+					result = new ArrayList<T>(row);
+				}
 				result.add(t);
 			}
+		}
+		if(result == null) {
+			result = Collections.emptyList();
 		}
 		return result;
 	}
 	
 	/**
-	 * @package com.creditease.system.util.jdbc  
+	 * PreparedStatementJdbcHandler
 	 * @author leetieniu
-	 * @description PreparedStatementJdbcHandler
-	 * @date 2016年5月6日 上午9:57:42    
-	 * @version V1.0 
-	 * @param <D> 返回值
+	 * @param <D>
 	 */
 	interface PreparedStatementJdbcHandler<D> {
 		
 		/**
-		 * @description 模板方法
-		 * @date 2016年5月5日 上午10:03:26  
-		 * @param pstmt 
+		 * 模板方法
+		 * @param pstmt
 		 * @return
 		 * @throws SQLException
 		 * @throws InstantiationException
@@ -263,19 +203,15 @@ public class DefaultJdbcTemplete implements JdbcTemplete {
 	}
 	
 	/**
-	 * @package com.creditease.system.app.dao  
+	 * ResultSetHandler
 	 * @author leetieniu
-	 * @description ResultSetHandler
-	 * @date 2016年5月5日 上午10:16:18    
-	 * @version V1.0 
 	 * @param <D> 返回值
 	 * @param <T> 参数类型
 	 */
 	interface ResultSetHandler<D, T> {
 		
 		/**
-		 * @description 模板方法
-		 * @date 2016年5月5日 上午10:16:07  
+		 * 模板方法
 		 * @param resultSet
 		 * @param clazz
 		 * @return
@@ -287,14 +223,16 @@ public class DefaultJdbcTemplete implements JdbcTemplete {
 	}
 	
 	private static final String SIMPLENAME_INTEGER = "Integer";
+	private static final String SIMPLENAME_BASE_INT = "int";
 	private static final String SIMPLENAME_LONG = "Long";
+	private static final String SIMPLENAME_BASE_LONG = "long";
 	private static final String SIMPLENAME_STRING = "String";
 	private static final String SIMPLENAME_DATE = "Date";
 	private static final String SIMPLENAME_DOUBLE = "Double";
+	private static final String SIMPLENAME_BASE_DOUBLE = "double";
 	
 	/**
-	 * @description 给
-	 * @date 2016年5月5日 上午10:04:03  
+	 * 设置bean的值
 	 * @param obj 实例
 	 * @param field 字段
 	 * @param sqlType 对应的java.sql.Types 的值
@@ -311,16 +249,16 @@ public class DefaultJdbcTemplete implements JdbcTemplete {
 		final String simpleName = field.getType().getSimpleName();
 		
 		if(resultSet.getObject(columnIndex) != null) {
-			if(SIMPLENAME_INTEGER.equals(simpleName)) {
+			if(SIMPLENAME_INTEGER.equals(simpleName) || SIMPLENAME_BASE_INT.equals(simpleName)) {
 				field.set(obj, resultSet.getInt(columnIndex));
-			} else if(SIMPLENAME_LONG.equals(simpleName)) {
+			} else if(SIMPLENAME_LONG.equals(simpleName) || SIMPLENAME_BASE_LONG.equals(simpleName)) {
 				field.set(obj, resultSet.getLong(columnIndex));
 			} else if(SIMPLENAME_STRING.equals(simpleName)) {
 				field.set(obj, resultSet.getString(columnIndex));
 			} else if(SIMPLENAME_DATE.equals(simpleName)) {
 				//field.set(obj, new Date(resultSet.getTimestamp(columnIndex).getTime()));
 				field.set(obj, resultSet.getTimestamp(columnIndex));
-			} else if(SIMPLENAME_DOUBLE.equals(simpleName)) {
+			} else if(SIMPLENAME_DOUBLE.equals(simpleName) || SIMPLENAME_BASE_DOUBLE.equals(simpleName)) {
 				field.set(obj, resultSet.getDouble(columnIndex));
 			}
 		}
@@ -341,25 +279,26 @@ public class DefaultJdbcTemplete implements JdbcTemplete {
 	}
 	
 	/**
-	 * @description 执行更新
-	 * @date 2016年5月7日 下午10:16:55  
+	 * 执行更新
 	 * @param sql
 	 * @param param 参数
 	 * @return 大于0成功否则失败
 	 */
 	private int exceuteUpdate(String sql, Object[] param) {
-		return excute(sql, param , new PreparedStatementJdbcHandler<Integer> () {
-			@Override
-			public Integer handle(PreparedStatement pstmt) throws SQLException,
-					InstantiationException, IllegalAccessException {
-				return pstmt.executeUpdate();
-			}
-		});
+		Connection conn = null;
+		try {
+			conn = dataSource.getConnection();
+			return exceuteUpdate(conn, sql, param);
+		} catch (SQLException ex) {
+			throw new JdbcTempleteException(ex);
+		} finally {
+			dataSource.releaseConnection(conn);
+		}
 	}
 	
 	/**
-	 * @description 执行更新
-	 * @date 2016年5月7日 下午10:16:55  
+	 * 执行更新
+	 * @param conn
 	 * @param sql
 	 * @param param 参数
 	 * @return 大于0成功否则失败
@@ -405,6 +344,19 @@ public class DefaultJdbcTemplete implements JdbcTemplete {
 	}
 	
 	@Override
+	public <T> T queryForObject(String sql, Object[] param , final Class<T> clazz) {
+		Connection conn = null;
+		try {
+			conn = dataSource.getConnection();
+			return queryForObject(conn, sql, param , clazz);
+		} catch (SQLException ex) {
+			throw new JdbcTempleteException(ex);
+		} finally {
+			dataSource.releaseConnection(conn);
+		}
+	}
+	
+	@Override
 	public <T> T queryForObject(Connection conn, String sql, Object[] param , final Class<T> clazz) {
 		T t = excute(conn, sql, param ,  new PreparedStatementJdbcHandler<T> () {
 			@Override
@@ -415,7 +367,8 @@ public class DefaultJdbcTemplete implements JdbcTemplete {
 					public T handle(ResultSet resultSet, Class<T> clazz)
 							throws SQLException, InstantiationException,
 							IllegalAccessException {
-						return getObject(resultSet, clazz);
+						T t = getObject(resultSet, clazz);
+						return t;
 					}
 				});
 				return t;
@@ -425,23 +378,16 @@ public class DefaultJdbcTemplete implements JdbcTemplete {
 	}
 	
 	@Override
-	public <T> T queryForObject(String sql, Object[] param , final Class<T> clazz) {
-		T t = excute(sql, param ,  new PreparedStatementJdbcHandler<T> () {
-			@Override
-			public T handle(PreparedStatement pstmt) throws SQLException,
-					InstantiationException, IllegalAccessException {
-				T t = query(pstmt, clazz, new ResultSetHandler<T, T> () {
-					@Override
-					public T handle(ResultSet resultSet, Class<T> clazz)
-							throws SQLException, InstantiationException,
-							IllegalAccessException {
-						return getObject(resultSet, clazz);
-					}
-				});
-				return t;
-			}
-		});
-		return t;
+	public <T> List<T> queryForList(String sql, Object[] param , final Class<T> clazz) {
+		Connection conn = null;
+		try {
+			conn = dataSource.getConnection();
+			return queryForList(conn, sql, param , clazz);
+		} catch (SQLException ex) {
+			throw new JdbcTempleteException(ex);
+		} finally {
+			dataSource.releaseConnection(conn);
+		}
 	}
 	
 	@Override
@@ -465,24 +411,107 @@ public class DefaultJdbcTemplete implements JdbcTemplete {
 		return list;
 	}
 	
-	@Override
-	public <T> List<T> queryForList(String sql, Object[] param , final Class<T> clazz) {
-		List<T> list = excute(sql, param , new PreparedStatementJdbcHandler<List<T>> () {
-
-			@Override
-			public List<T> handle(PreparedStatement pstmt) throws SQLException,
-					InstantiationException, IllegalAccessException {
-				List<T> list = query(pstmt, clazz, new ResultSetHandler<List<T>, T> () {
-					@Override
-					public List<T> handle(ResultSet resultSet, Class<T> clazz)
-							throws SQLException, InstantiationException,
-							IllegalAccessException {
-						return getObjectList(resultSet, clazz);
-					}
-				});
-				return list;
+	/**
+	 * 批量更新, 普通的Statement
+	 * @param conn
+	 * @param sqls 批量的sql
+	 * @return 每条sql 成功执行数
+	 */
+	private int[] executeBatchByStatement(Connection conn , List<String> sqls) {
+		Statement stm = null;
+		try {
+			stm = conn.createStatement();
+			
+			if(sqls.size() > 0) {
+				for(String sql : sqls) {
+					stm.addBatch(sql);
+				}
 			}
-		});
-		return list;
+			return stm.executeBatch();
+		} catch (SQLException ex) {
+			throw new JdbcTempleteException(ex);
+		} catch (Exception ex) {
+			throw new JdbcTempleteException(ex);
+		} finally {
+			try {
+				if (stm != null) {
+					stm.close();
+				}
+			} catch (SQLException ex) {
+				//throw new JdbcTempleteException(ex);
+			}
+		}
+	}
+	
+	/**
+	 * 批量更新 PreparedStatement
+	 * @param conn
+	 * @param sql 同一条sql
+	 * @param params 多条的参数
+	 * @return 每条sql 成功执行数
+	 */
+	private int[] executeBatchByPreparedStatement(Connection conn , String sql, List<Object[]> params) {
+		PreparedStatement pstmt = null;
+		try {
+			pstmt = conn.prepareStatement(sql);
+			
+			if(null != params) {
+				for(Object[] param : params) {
+					for (int i = 0; i < param.length; i++) {
+						pstmt.setObject(i + 1, param[i]);
+				    }
+					pstmt.addBatch();
+				}
+			}
+			return pstmt.executeBatch();
+		} catch (SQLException ex) {
+			throw new JdbcTempleteException(ex);
+		} catch (Exception ex) {
+			throw new JdbcTempleteException(ex);
+		} finally {
+			try {
+				if (pstmt != null) {
+					pstmt.close();
+				}
+			} catch (SQLException ex) {
+				//throw new JdbcTempleteException(ex);
+			}
+		}
+	}
+	
+	@Override
+	public int[] executeBatch(String sql, List<Object[]> params) {
+		Connection conn = null;
+		try {
+			conn = dataSource.getConnection();
+			return executeBatchByPreparedStatement(conn , sql, params);
+		} catch (SQLException ex) {
+			throw new JdbcTempleteException(ex);
+		} finally {
+			dataSource.releaseConnection(conn);
+		}
+	}
+	
+	@Override
+	public int[] executeBatch(Connection conn , String sql, List<Object[]> params) {
+		return executeBatchByPreparedStatement(conn , sql, params);
+	}
+	
+	@Override
+	public int[] executeBatch(List<String> sqls) {
+		Connection conn = null;
+		try {
+			conn = dataSource.getConnection();
+			return executeBatch(conn, sqls);
+		} catch (SQLException ex) {
+			throw new JdbcTempleteException(ex);
+		} finally {
+			dataSource.releaseConnection(conn);
+		}
+	}
+	
+	@Override
+	public int[] executeBatch(Connection conn, List<String> sqls) {
+		return executeBatchByStatement(conn, sqls);
 	}
 }

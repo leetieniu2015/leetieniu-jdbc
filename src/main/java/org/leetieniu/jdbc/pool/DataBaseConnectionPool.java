@@ -1,42 +1,54 @@
 package org.leetieniu.jdbc.pool;
 
 import java.sql.Connection;
+import java.sql.SQLException;
 
 /**
- * @package org.leetieniu.jdbc.pool  
+ * 数据库连接池接口
  * @author leetieniu
- * @description 数据库连接池接口
- * @date 2016年5月6日 下午7:16:20    
- * @version V1.0
  */
 public interface DataBaseConnectionPool {
 	
 	/**
-	 * @description 在mills 内获取连接,获取不到将会返回null
-	 * @date 2016年5月4日 下午5:34:13  
-	 * @param mills
-	 * @return 
-	 * @throws InterruptedException
+	 * 在mills 内获取连接,获取不到将会返回null
+	 * @param mills 超时时间
+	 * @return 连接
+	 * @throws InterruptedException 超时时抛出异常
 	 */
 	public Connection fecthConnection(long mills) throws InterruptedException;
 	
 	/**
-	 * @description 释放连接  到连接池  
-	 * @date 2016年5月4日 下午5:34:48  
-	 * @param connection
+	 * 释放连接  到连接池  
+	 * @param connection 连接
 	 */
 	public void releaseConnection(Connection connection);
 	
 	/**
-	 * @description 关闭连接池  
-	 * @date 2016年5月4日 下午5:35:31
+	 * 建立一个新连接
+	 * @return Connection 连接
+	 * @throws SQLException 创建错误时抛出异常
+	 */
+	public Connection createNewConnection() throws SQLException;
+	
+	/**
+	 * 关闭连接池  
 	 */
 	public void shutdown();
 	
 	/**
-	 * @description 获取等待线程的任务数量
-	 * @date 2016年5月4日 下午5:35:39  
-	 * @return
+	 * 丢弃连接
+	 * @param connection 连接
+	 */
+	public void remove(Connection connection);
+	
+	/**
+	 * 获取等待线程的任务数量
+	 * @return 连接
 	 */
 	public int getPoolSize();
+	
+	/**
+	 * 校验所有连接
+	 */
+	public void validAllConnection();
 }

@@ -7,22 +7,17 @@ import org.leetieniu.jdbc.datasouce.SimpleDataSource;
 import org.leetieniu.jdbc.templete.DefaultJdbcTemplete;
 import org.leetieniu.jdbc.templete.JdbcTemplete;
 
-
 /**
+ * JdbcTemplete工厂类
  * @see https://github.com/leetieniu2015/leetieniu-jdbc/tree/master
- * @package org.leetieniu.jdbc.factory  
  * @author leetieniu
- * @description JdbcTemplete工厂类
- * @date 2016年5月6日 下午7:16:37    
- * @version V1.0
  */
 public class JdbcTempleteFactory {
 	
 	private final static Map<SimpleDataSource, JdbcTemplete> JDBCTEMPLETES = new HashMap<SimpleDataSource, JdbcTemplete>();
 	
 	/**
-	 * @description 获取默认jdbc模板
-	 * @date 2016年5月28日 下午11:09:54  
+	 * 获取默认jdbc模板
 	 * @param simpleDataSource 简单数据源
 	 * @return DefaultJdbcTemplete
 	 */

@@ -1,11 +1,8 @@
 package org.leetieniu.jdbc.config;
 
 /**
- * @package org.leetieniu.jdbc.config  
+ * 数据库连接信息
  * @author leetieniu
- * @description 数据库连接信息
- * @date 2016年5月6日 下午7:17:04    
- * @version V1.0
  */
 public class DataBaseConfig {
 	

@@ -5,20 +5,17 @@ import java.util.Date;
 import org.junit.Assert;
 import org.junit.Ignore;
 import org.junit.Test;
-import org.leetieniu.jdbc.holder.JdbcTempleteHolder;
+import org.leetieniu.jdbc.holder.JdbcHolder;
 import org.leetieniu.jdbc.model.User;
 import org.leetieniu.jdbc.templete.JdbcTemplete;
 
 /**
- * @package org.leetieniu.jdbc  
+ * 测试
  * @author leetieniu
- * @description TODO
- * @date 2016年5月7日 下午11:33:54    
- * @version V1.0
  */
 public class JdbcTempleteTest {
 	
-	private JdbcTemplete JdbcTemplete = JdbcTempleteHolder.getDefaultJdbcTemplete();
+	private JdbcTemplete JdbcTemplete = JdbcHolder.getDefaultJdbcTemplete();
 	//private JdbcTemplete JdbcTemplete2 = JdbcTempleteHolder.getDefaultJdbcTemplete();
 	
 	@Test

@@ -4,28 +4,23 @@ import java.sql.Connection;
 import java.util.List;
 
 /**
- * @package org.leetieniu.jdbc.templete  
+ * Jdbc调用模板接口
  * @author leetieniu
- * @description Jdbc调用模板接口
- * @date 2016年5月6日 下午7:15:07    
- * @version V1.0
  */
 public interface JdbcTemplete {
 	
 	/**
-	 * @description 获取指定对象 连接自己管理
-	 * @date 2016年5月16日 上午10:26:53  
+	 * 获取指定对象 连接自己管理
 	 * @param conn
 	 * @param sql
 	 * @param param 参数
 	 * @param clazz 返回对象class
-	 * @return
+	 * @return T
 	 */
 	public <T> T queryForObject(Connection conn, String sql, Object[] param, Class<T> clazz);
 	
 	/**
-	 * @description 获取指定对象
-	 * @date 2016年5月4日 下午5:52:56  
+	 * 获取指定对象
 	 * @param sql
 	 * @param param 参数
 	 * @param clazz 返回对象class
@@ -34,8 +29,7 @@ public interface JdbcTemplete {
 	public <T> T queryForObject(String sql, Object[] param, Class<T> clazz);
 	
 	/**
-	 * @description 查询制定对象列表 连接自己管理
-	 * @date 2016年5月16日 上午8:52:08  
+	 * 查询制定对象列表 连接自己管理
 	 * @param conn
 	 * @param sql
 	 * @param param  参数
@@ -45,8 +39,7 @@ public interface JdbcTemplete {
 	public <T> List<T> queryForList(Connection conn, String sql, Object[] param , Class<T> clazz) ;
 	
 	/**
-	 * @description 查询制定对象列表
-	 * @date 2016年5月4日 下午8:50:16  
+	 * 查询制定对象列表
 	 * @param sql
 	 * @param param 参数
 	 * @param clazz 返回对象class
@@ -55,8 +48,7 @@ public interface JdbcTemplete {
 	public <T> List<T> queryForList(String sql, Object[] param , Class<T> clazz) ;
 	
 	/**
-	 * @description 插入, 连接自己管理
-	 * @date 2016年5月16日 上午8:51:28  
+	 * 插入, 连接自己管理
 	 * @param conn 连接
 	 * @param sql
 	 * @param param 参数
@@ -65,8 +57,7 @@ public interface JdbcTemplete {
 	public int insert(Connection conn, String sql, Object[] param);
 	
 	/**
-	 * @description 插入
-	 * @date 2016年5月7日 下午10:17:32  
+	 * 插入
 	 * @param sql
 	 * @param param 参数
 	 * @return 大于0成功否则失败
@@ -74,8 +65,7 @@ public interface JdbcTemplete {
 	public int insert(String sql, Object[] param);
 	
 	/**
-	 * @description 更新, 连接自己管理
-	 * @date 2016年5月16日 上午8:50:28  
+	 * 更新, 连接自己管理
 	 * @param conn 连接
 	 * @param sql
 	 * @param param 参数
@@ -84,8 +74,7 @@ public interface JdbcTemplete {
 	public int update(Connection conn, String sql, Object[] param);
 	
 	/**
-	 * @description 更新
-	 * @date 2016年5月7日 下午10:17:40  
+	 * 更新
 	 * @param sql
 	 * @param param 参数
 	 * @return 大于0成功否则失败
@@ -93,8 +82,7 @@ public interface JdbcTemplete {
 	public int update(String sql, Object[] param);
 	
 	/**
-	 * @description 删除, 连接自己管理
-	 * @date 2016年5月16日 上午8:49:09  
+	 * 删除, 连接自己管理
 	 * @param conn 连接
 	 * @param sql
 	 * @param param 参数
@@ -103,12 +91,43 @@ public interface JdbcTemplete {
 	public int delete(Connection conn, String sql, Object[] param);
 	
 	/**
-	 * @description 删除
-	 * @date 2016年5月7日 下午10:17:44  
+	 * 删除
 	 * @param sql
 	 * @param param 参数
 	 * @return 大于0成功否则失败
 	 */
 	public int delete(String sql, Object[] param);
+	
+	/**
+	 * 预编译的sql , 同一条sql 不同参数的批量更新
+	 * @param sql 同一条sql
+	 * @param params 不同参数 列表 
+	 * @return 每条sql 成功执行数
+	 */
+	public int[] executeBatch(String sql, List<Object[]> params);
+	
+	/**
+	 * 预编译的sql , 同一条sql 不同参数的批量更新
+	 * @param conn
+	 * @param sql 同一条sql
+	 * @param params 不同参数 列表 
+	 * @return 每条sql 成功执行数
+	 */
+	public int[] executeBatch(Connection conn, String sql, List<Object[]> params);
+	
+	/**
+	 * 包含批中每个命令的一个元素的更新计数所组成的数组。数组的元素根据将命令添加到批中的顺序排序。
+	 * @param sqls 批量的sql
+	 * @return 每条sql 成功执行数
+	 */
+	public int[] executeBatch(List<String> sqls);
+	
+	/**
+	 * 包含批中每个命令的一个元素的更新计数所组成的数组。数组的元素根据将命令添加到批中的顺序排序。
+	 * @param conn
+	 * @param sqls 批量的sql
+	 * @return 每条sql 成功执行数
+	 */
+	public int[] executeBatch(Connection conn, List<String> sqls);
 	
 }

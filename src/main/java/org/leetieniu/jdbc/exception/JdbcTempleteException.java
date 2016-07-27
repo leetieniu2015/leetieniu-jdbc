@@ -1,11 +1,8 @@
 package org.leetieniu.jdbc.exception;
 
 /**
- * @package org.leetieniu.jdbc.exception  
+ * 数据库连接异常, 把所有数据库异常都封装成此异常类
  * @author leetieniu
- * @description 数据库连接异常, 把所有数据库异常都封装成此异常类
- * @date 2016年5月6日 下午7:16:47    
- * @version V1.0
  */
 public class JdbcTempleteException extends RuntimeException {
 
